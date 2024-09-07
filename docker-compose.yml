@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:latest
+    container_name: mm-product-db
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: marketmaster
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/mm-product.sql:/docker-entrypoint-initdb.d/mm-product.sql
+    ports:
+      - "5435:5432"
+    networks:
+      - marketmaster-network
+
+  product_service:
+    build: .
+    container_name: mm-product
+    ports:
+      - "5704:5704"
+    depends_on:
+      - db
+    environment:
+      FLASK_APP: app.py
+      FLASK_ENV: development
+    volumes:
+      - .:/app
+    networks:
+      - marketmaster-network
+
+volumes:
+  postgres_data:
+
+networks:
+  marketmaster-network:
+    external: true
