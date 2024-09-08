@@ -115,10 +115,6 @@ def init_routes(api):
             db.session.commit()
             return '', 204
 
-    # Register routes
-    # api.add_resource(ProductList, '/mm-product')
-    # api.add_resource(ProductDetail, '/mm-product/<int:id>')
-
     # Define resources and routes
     @category_ns.route('/')
     class CategoryList(Resource):
@@ -179,7 +175,3 @@ def init_routes(api):
             db.session.delete(category)
             db.session.commit()
             return '', 204
-
-    # Register routes
-    # api.add_resource(CategoryList, '/category')
-    # api.add_resource(CategoryDetail, '/category/<int:id>')

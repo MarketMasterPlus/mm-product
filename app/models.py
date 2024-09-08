@@ -2,6 +2,7 @@
 
 from . import db  # Import the db instance from __init__.py
 
+
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
@@ -13,6 +14,7 @@ class Product(db.Model):
 
     def __repr__(self):
         return f"<Product {self.name}, {self.description}, {self.brand}, Suggested Price: {self.suggestedprice}>"
+
 
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
