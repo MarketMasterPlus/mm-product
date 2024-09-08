@@ -1,6 +1,6 @@
 # mm-product/app/schemas.py
 from flask_marshmallow import Marshmallow
-from .models import Product, Category, ProductItem
+from .models import Product, Category
 
 ma = Marshmallow()
 

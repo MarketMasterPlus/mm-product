@@ -21,7 +21,7 @@ def init_routes(api):
         'name': fields.String(required=True, description='Product commercial name'),
         'description': fields.String(required=True, description='Product description'),
         'brand': fields.String(required=False, description='Product brand'),
-        'category': fields.Integer(readOnly=True, description='Product category'),
+        'categoryid': fields.Integer(readOnly=True, description='Product category'),
         'suggestedprice': fields.Float(required=True, description='Suggested price of a single unit of the product'),
         'imageurl': fields.String(required=False, description='URL of the product image')
     })
@@ -32,26 +32,36 @@ def init_routes(api):
         'name': fields.String(required=True, description='Category name')
     })
 
-    # Define resources and routes
     @product_ns.route('/')
     class ProductList(Resource):
-        @product_ns.doc('list_products', params={'q': 'Query string to search for products by name or description'})
+        @product_ns.doc('list_products', params={
+            'name': 'Filter by product name',
+            'category': 'Filter by product category ID',
+            'description': 'Filter by product description',
+            'brand': 'Filter by product brand'
+        })
         @product_ns.marshal_list_with(product_model)
         def get(self):
-            """List all products or search by query string"""
-            query = request.args.get('q')
-            if query:
-                search_filter = f"%{query.lower()}%"
-                products = Product.query.filter(
-                    or_(
-                        db.func.lower(Product.name).ilike(search_filter),
-                        db.func.lower(Product.description).ilike(search_filter),
-                        db.func.lower(Product.brand).ilike(search_filter)
-                    )
-                ).all()
-            else:
-                products = Product.query.all()
+            """List all products or search by specified attributes"""
+            name_filter = request.args.get('name')
+            category_filter = request.args.get('category')
+            description_filter = request.args.get('description')
+            brand_filter = request.args.get('brand')
+
+            query = Product.query
+
+            if name_filter:
+                query = query.filter(db.func.lower(Product.name).ilike(f"%{name_filter.lower()}%"))
+            if category_filter:
+                query = query.join(Category).filter(db.func.lower(Category.name).ilike(f"%{category_filter.lower()}%"))
+            if description_filter:
+                query = query.filter(db.func.lower(Product.description).ilike(f"%{description_filter.lower()}%"))
+            if brand_filter:
+                query = query.filter(db.func.lower(Product.brand).ilike(f"%{brand_filter.lower()}%"))
+
+            products = query.all()
             return products
+
 
         @product_ns.doc('create_product')
         @product_ns.expect(product_model)
@@ -71,18 +81,21 @@ def init_routes(api):
         @product_ns.marshal_list_with(product_model)
         def get(self, id):
             """List all products by category and optionally filter by query string"""
-            query = request.args.get('q')
-            query_filter = [Product.category == id]  # Start with filtering by category
+            query = Product.query.filter(Product.categoryid == id)
 
-            if query:
-                search_filter = f"%{query.lower()}%"
-                query_filter.append(or_(
-                    db.func.lower(Product.name).ilike(search_filter),
-                    db.func.lower(Product.description).ilike(search_filter),
-                    db.func.lower(Product.brand).ilike(search_filter)
-                ))
+            # Handling the optional query string for further filtering
+            q = request.args.get('q')
+            if q:
+                search_filter = f"%{q.lower()}%"
+                query = query.filter(
+                    or_(
+                        Product.name.ilike(search_filter),
+                        Product.description.ilike(search_filter),
+                        Product.brand.ilike(search_filter)
+                    )
+                )
 
-            products = Product.query.filter(*query_filter).all()  # Apply the filters to the query
+            products = query.all()
             return products
 
     @product_ns.route('/<int:id>')

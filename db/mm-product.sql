@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS product (
     name VARCHAR(255) NOT NULL,
     description TEXT,
     brand VARCHAR(255),
-    category INTEGER NOT NULL REFERENCES category(id),
+    categoryid INTEGER NOT NULL REFERENCES category(id),
     suggestedprice DECIMAL(10, 2) NOT NULL,
     imageurl VARCHAR(255)
 );
@@ -54,7 +54,7 @@ INSERT INTO category (name) VALUES
 ('Especiarias e Temperos');
 
 -- Insert products for each category with various brands and descriptions
-INSERT INTO product (name, description, brand, category, suggestedprice, imageurl) VALUES
+INSERT INTO product (name, description, brand, categoryid, suggestedprice, imageurl) VALUES
 -- Mercearia
 ('Arroz Branco', 'Arroz branco polido - 1kg', 'Marca A', 1, 5.49, 'http://example.com/arroz_a.jpg'),
 ('Arroz Integral', 'Arroz integral natural - 1kg', 'Marca B', 1, 6.10, 'http://example.com/arroz_b.jpg'),
